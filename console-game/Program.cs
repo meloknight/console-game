@@ -5,6 +5,26 @@ Player player1 = new Player(4, 0);
 Player player2 = new Player(2, 2);
 GameState gameStateObject = new GameState([player1, player2]);
 
+static void GameLoop(GameState gameStateObject)
+{
+    while(!gameStateObject.isGameOver)
+    {
+        Console.WriteLine($"{gameStateObject.isGameOver}");
+        Console.WriteLine("Would you like the game to be over? (yes / no): ");
+        string end_game = Console.ReadLine();
+        if (end_game == "yes")
+        {
+            gameStateObject.isGameOver = true;
+            Console.WriteLine("The game is over!");
+        }
+        else
+        {
+            Console.WriteLine("The game continues!");
+        }
+    }
+}
+GameLoop(gameStateObject);
+
 class Player
 {
     public int playerPositionX { get; set; }
