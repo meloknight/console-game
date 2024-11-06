@@ -1,114 +1,105 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System.Runtime.CompilerServices;
+using console_game.game;
 
-Player player1 = new Player(4, 0);
-Player player2 = new Player(2, 2);
-GameState gameStateObject = new GameState([player1, player2]);
 
-static void GameLoop(GameState gameStateObject)
+// object creation
+Player player1 = new Player( 0, 0 );
+Player player2 = new Player( 4, 4 );
+Player[] players = { player1, player2 };
+Screen screen = new Screen();
+GameState gameStateObject = new GameState( players, screen );
+PlayerInput playerInputObject = new PlayerInput();
+
+
+// Game Loop for the entire game. Goes through player input, logic, and updating screen.
+static void GameLoop( GameState gameStateObject, Screen screen, Player[] players, PlayerInput playerInputObject )
 {
-    while(!gameStateObject.isGameOver)
+    // initialize!!
+    Console.WriteLine( "-----SQUARE GAME-----\n" );
+    Player currentPlayer = players[0];
+    screen.DrawBoard( gameStateObject.gameBoard );
+
+    while ( !gameStateObject.isGameOver )
     {
-        Console.WriteLine($"{gameStateObject.isGameOver}");
-        Console.WriteLine("Would you like the game to be over? (yes / no): ");
-        string end_game = Console.ReadLine();
-        if (end_game == "yes")
+        // PLAYER INPUT!!!
+
+
+        //foreach ( Player player in players )
+        //{
+        //    if ( player.playerNumber == gameStateObject.playerTurn )
+        //    {
+        //        currentPlayer = player;
+        //    }
+        //}
+        currentPlayer = playerInputObject.determineCurrentPlayer( players, gameStateObject );
+
+        Console.WriteLine( "End the game at any time by typing 'end'." );
+        Console.WriteLine( $"Player {currentPlayer.playerNumber}, which direction would you like to move?: " );
+        string player_action = Console.ReadLine().ToLower();
+
+        // GAME LOGIC!!!
+
+        switch ( player_action )
         {
-            gameStateObject.isGameOver = true;
-            Console.WriteLine("The game is over!");
+            case "end":
+                gameStateObject.isGameOver = true;
+                Console.WriteLine( "The game is over! Have a Nice Day!" );
+                break;
+            case "up":
+                if ( currentPlayer.playerPositionY > 0 )
+                {
+                    currentPlayer.playerPositionY--;
+                }
+                else
+                {
+                    currentPlayer.playerPositionY = 4;
+                }
+                break;
+            case "down":
+                if ( currentPlayer.playerPositionY < 4 )
+                {
+                    currentPlayer.playerPositionY++;
+                }
+                else
+                {
+                    currentPlayer.playerPositionY = 0;
+                }
+                break;
+            case "left":
+                if ( currentPlayer.playerPositionX > 0 )
+                {
+                    currentPlayer.playerPositionX--;
+                }
+                else
+                {
+                    currentPlayer.playerPositionX = 4;
+                }
+                break;
+            case "right":
+                if ( currentPlayer.playerPositionX < 4 )
+                {
+                    currentPlayer.playerPositionX++;
+                }
+                else
+                {
+                    currentPlayer.playerPositionX = 0;
+                }
+                break;
+            default:
+                Console.WriteLine( $"Player {currentPlayer.playerNumber} stands and stares into space. Eyes unfocused, hands sweaty..." );
+                break;
         }
-        else
-        {
-            Console.WriteLine("The game continues!");
-        }
+
+        gameStateObject.UpdateGameBoard( players );
+        Console.WriteLine( "\n---------------------" );
+        Console.WriteLine( $"\nPlayer {currentPlayer.playerNumber} is at X: {currentPlayer.playerPositionX} and Y: {currentPlayer.playerPositionY}\n" );
+
+        // UPDATE SCREEN!!!
+        screen.DrawBoard( gameStateObject.gameBoard );
+
+        // NEXT PLAYER!!!
+        if ( gameStateObject.playerTurn == 1 ) { gameStateObject.playerTurn = 2; }
+        else { gameStateObject.playerTurn = 1; }
     }
 }
-GameLoop(gameStateObject);
-
-class Player
-{
-    public int playerPositionX { get; set; }
-    public int playerPositionY { get; set; }
-    static int playerCount = 0;
-    public int playerNumber { get; set; }
-    public Player (int playerX, int playerY)
-    {
-        playerPositionX = playerX;
-        playerPositionY = playerY;
-        playerCount++;
-        playerNumber = playerCount;
-    }
-}
-
-class GameState
-{
-    public bool isGameOver;
-    public int playerTurn;
-    public string[] gameBoard;
-    private Player[] playerObjects;
-    private int[] boardPositionMapX;
-    private int[] boardPositionMapY;
-
-    public GameState(Player[] playerObjects)
-    {
-        isGameOver = false;
-        playerTurn = 1;
-        int[] boardPositionMapX = new int[5] { 2, 6, 10, 14, 18 };
-        int[] boardPositionMapY = new int[5] { 1, 3, 5, 7, 9 };
-        gameBoard = new string[11]
-        {
-            "+ - + - + - + - + - +",
-            "|   |   |   |   |   |",
-            "+ - + - + - + - + - +",
-            "|   |   |   |   |   |",
-            "+ - + - + - + - + - +",
-            "|   |   |   |   |   |",
-            "+ - + - + - + - + - +",
-            "|   |   |   |   |   |",
-            "+ - + - + - + - + - +",
-            "|   |   |   |   |   |",
-            "+ - + - + - + - + - +",
-        };
-        UpdateGameBoard(gameBoard, playerObjects, boardPositionMapX, boardPositionMapY);
-        DrawBoard(gameBoard);
-
-    }
-
-    public void UpdateGameBoard(string[] gameBoard, Player[] players, int[] boardMapX, int[] boardMapY)
-    {
-
-        if (players != null)
-        {
-            for (int i = 0; i < players.Length; i++)
-            {
-                var player = players[i];
-                var playerPositionX = player.playerPositionX;
-                var playerPositionY = player.playerPositionY;
-                int playerPositionMappedX = boardMapX[playerPositionX];
-                int playerPositionMappedY = boardMapY[playerPositionY];
-                Console.WriteLine($"player number: {player.playerNumber}, X position: {playerPositionMappedX}, Y position: {playerPositionMappedY}");
-                string gameBoardY = gameBoard[playerPositionMappedY];
-                char[] tempCharArray = gameBoardY.ToCharArray();
-                tempCharArray[playerPositionMappedX] = 'A';
-                string resultString = new string(tempCharArray);
-                gameBoard[playerPositionMappedY] = resultString;
-            }
-            DrawBoard(gameBoard);
-        }
-        else
-        {
-            Console.WriteLine("null friendo!");
-        }
-        
-    }
-
-    public void DrawBoard(string[] currentBoard)
-    {
-        for (int i = 0; i < currentBoard.Length; i++)
-        {
-            Console.WriteLine(currentBoard[i]);
-        }
-        Console.WriteLine("---------------------");
-    }
-
-}
+GameLoop( gameStateObject, screen, players, playerInputObject );
